@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkcalendar import DateEntry
 from datetime import date, datetime
-from sql_actions import insert_data, show_data
+from sql_actions import insert_data, show_data, delete_transaction
 import json
 
 def save_categories(categories):
@@ -97,38 +97,44 @@ def create_gui():
         submit_button = ttk.Button(root, text="Zatwierdź", command=submit)
         submit_button.pack(pady=10)
 
-    import tkinter as tk
-    from tkinter import ttk
-
     def show_summary():
+
+        def delete_selected():
+            selected_transaction = tree.focus()  # Pobieramy zaznaczony element
+            if not selected_transaction:
+                print("Nie wybrano żadnej transakcji")
+                return
+            transaction_values = tree.item(selected_transaction, "values")
+            transaction_id = transaction_values[0]  # Pobieramy ID transakcji
+            delete_transaction(transaction_id)  # Usuwamy transakcję z bazy danych
+            tree.delete(selected_transaction)  # Usuwamy transakcję z widoku
+
         summary_window = tk.Toplevel(root)
         summary_window.title("Podsumowanie wydatków")
-        summary_window.geometry("400x300")
+        summary_window.geometry("500x400")
 
         ttk.Label(summary_window, text="Lista wydatków", font=("Arial", 14, "bold")).pack(pady=10)
 
-        expenses = show_data()
-        columns = ("Nazwa", "Kwota (PLN)", "Data", "Kategoria")
+        expenses = show_data()  # Pobieramy dane z bazy
+        columns = ("ID", "Nazwa", "Kwota (PLN)", "Data", "Kategoria")
 
-        tree = ttk.Treeview(summary_window, columns=columns, show="headings")
+        tree = ttk.Treeview(summary_window, columns=columns, show="headings", selectmode="browse")
 
         for col in columns:
             tree.heading(col, text=col, command=lambda c=col: sort_treeview(tree, c, False))
-
-        tree.column("Nazwa", width=100)
-        tree.column("Kwota (PLN)", width=80)
-        tree.column("Data", width=100)
-        tree.column("Kategoria", width=100)
+            tree.column(col, width=100)
 
         for expense in expenses:
-            tree.insert("", tk.END, values=(expense[1], expense[2], expense[3], categorize_expense(expense[1])))
+            tree.insert("", tk.END, values=(expense[0], expense[1], expense[2], expense[3], categorize_expense(expense[1])))
 
         tree.pack(expand=True, fill="both", padx=10, pady=10)
+
+        delete_button = ttk.Button(summary_window, text="Usuń transakcję", command=delete_selected)  # Przypisanie funkcji bez nawiasów
+        delete_button.pack(pady=5)
 
     def sort_treeview(tree, col, reverse):
         data = [(tree.set(child, col), child) for child in tree.get_children("")]
 
-        # Spróbuj zamienić wartości na liczby, jeśli to możliwe (np. dla kwot)
         try:
             data.sort(key=lambda t: float(t[0]), reverse=reverse)
         except ValueError:
@@ -157,7 +163,6 @@ def create_gui():
     show_main_view()
 
     root.mainloop()
-
 
 
 create_gui()
