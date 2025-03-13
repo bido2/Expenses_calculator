@@ -1,7 +1,4 @@
 import sqlite3
-from datetime import date
-import pandas as pd
-
 
 def db_create():
     conn = sqlite3.connect('wydatki.db')
@@ -31,7 +28,7 @@ def insert_data(nazwa: str, kwota, data, kategoria: str):
         return
 
     try:
-        kwota = float(kwota)  # konwersja jeśli np. ktoś podał stringa "123.45"
+        kwota = float(kwota)
     except ValueError:
         print("Nieprawidłowa kwota")
         return
@@ -83,3 +80,7 @@ def delete_transaction(transaction_id: int):
     finally:
         cursor.close()
         conn.close()
+
+
+def report_query():
+    pass
