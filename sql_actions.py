@@ -82,5 +82,35 @@ def delete_transaction(transaction_id: int):
         conn.close()
 
 
-def report_query():
-    pass
+def report_query(min, max, st, en, cat):
+    conn = db_connect()
+    cursor = conn.cursor()
+    query = "SELECT * FROM transakcje WHERE id > 0"
+    params = []
+
+    if min != '':
+        query += " AND kwota >= ?"
+        params.append(min)
+
+    if max != '':
+        query += " AND kwota <= ?"
+        params.append(max)
+
+    if st != '':
+        query += " AND data >= ?"
+        params.append(st)
+
+    if en != '':
+        query += " AND data <= ?"
+        params.append(en)
+
+    if cat != 'Wszystkie' and cat != '':
+        query += " AND kategoria = ?"
+        params.append(cat)
+
+    print(query, params)
+    cursor.execute(query, params)
+    rows = cursor.fetchall()
+
+    conn.close()
+    return rows

@@ -33,15 +33,15 @@ def update_category(event):
     category_var.set(category)
 
 
+def convert_date(date_str: str) -> str:
+    date_obj = datetime.strptime(date_str, '%m/%d/%y')
+    return date_obj.strftime('%Y-%m-%d')
+
 def create_gui():
-    def show_form():
+    def new_expense():
         insert_window = tk.Toplevel(root)
         insert_window.title("Podsumowanie wydatków")
         insert_window.geometry("300x400")
-
-        def convert_date(date_str: str) -> str:
-            date_obj = datetime.strptime(date_str, '%m/%d/%y')
-            return date_obj.strftime('%Y-%m-%d')
 
         def submit():
             global categories
@@ -99,7 +99,7 @@ def create_gui():
         submit_button.pack(pady=10)
 
 
-    def show_summary():
+    def expenses_summary():
 
         def delete_selected():
             selected_transaction = tree.focus()
@@ -150,16 +150,53 @@ def create_gui():
 
 
 
-    def report_details():
+    def report():
         def show_report():
-            try:
-                min = int(min_price.get())
-                max = int(max_price.get())
-            except ValueError:
-                print("Bład w danych")
-                return
-            except Exception as e:
-                print(f"Błąd: {e}")
+
+            min = min_price.get()
+            max = max_price.get()
+
+            if min != '' and max != '':
+                try:
+                    min = int(min)
+                    max = int(max)
+                except ValueError:
+                    print("Bład w danych (kwota)")
+                    return
+                except Exception as e:
+                    print(f"Błąd: {e}")
+                    return
+
+            st = start_date.get()
+            if st != "":
+                st = convert_date(st)
+
+            en = end_date.get()
+            if en != "":
+                en = convert_date(en)
+            cat = category_dropdown.get()
+
+            print(f"{min} {type(min)}, {max} {type(max)}, {st} {type(st)}, {en} {type(en)}, {en} {type(en)}, {cat} {type(cat)}")
+
+            report_window = tk.Toplevel(root)
+            report_window.title("Raport")
+            report_window.geometry("500x400")
+
+            rows = report_query(min, max, st, en, cat)
+            columns = ("ID", "Nazwa", "Kwota (PLN)", "Data", "Kategoria")
+
+            tree = ttk.Treeview(report_window, columns=columns, show="headings", selectmode="browse")
+
+            for col in columns:
+                tree.heading(col, text=col, command=lambda c=col: sort_treeview(tree, c, False))
+                tree.column(col, width=100)
+
+            for expense in rows:
+                tree.insert("", tk.END,
+                            values=(expense[0], expense[1], expense[2], expense[3], categorize_expense(expense[1])))
+
+            tree.pack(expand=True, fill="both", padx=10, pady=10)
+
 
 
         report_window = tk.Toplevel(root)
@@ -195,9 +232,14 @@ def create_gui():
         end_date.delete(0, END)
 
 
+        categories = load_categories()
+        categories_list = list(categories.keys())
+        categories_list.insert(0,'Wszystkie')
         ttk.Label(content, text='Kategoria').grid(row=3, column=0, pady=10)
-        category = ttk.Entry(content)
-        category.grid(row=3, column=1, columnspan=3, padx=5)
+        category_var = tk.StringVar(value=categories_list[0])
+        category_dropdown = ttk.Combobox(content, textvariable=category_var, values=categories_list, state="readonly")
+        category_dropdown.grid(row=3, column=1, columnspan=3, padx=5)
+
 
 
         ttk.Button(content, text='Generuj', command=show_report).grid(row=5, column=1, columnspan=3, padx=5)
@@ -211,13 +253,13 @@ def create_gui():
         style = ttk.Style()
         style.configure("Big.TButton", padding=(10, 15))
 
-        new_expense_button = ttk.Button(root, text="Nowy wydatek", command=show_form, width=15, style="Big.TButton")
+        new_expense_button = ttk.Button(root, text="Nowy wydatek", command=new_expense, width=15, style="Big.TButton")
         new_expense_button.grid(row=0, column=0, padx=20, pady=10)
 
-        expenses_list_button = ttk.Button(root, text="Lista wydatków", command=show_summary, width=15,style="Big.TButton")
+        expenses_list_button = ttk.Button(root, text="Lista wydatków", command=expenses_summary, width=15,style="Big.TButton")
         expenses_list_button.grid(row=0, column=1, padx=5)
 
-        report_button = ttk.Button(root, text="Raport", command=report_details, width=15,style="Big.TButton")
+        report_button = ttk.Button(root, text="Raport", command=report, width=15,style="Big.TButton")
         report_button.grid(row=1, column=0, padx=10, pady=10)
 
     root = tk.Tk()
