@@ -1,0 +1,33 @@
+{
+    "Jedzenie": [
+        "obiad",
+        "kolacja",
+        "lunch",
+        "mleko",
+        "czekolada",
+        "jabłko",
+        "pizza",
+        "lody"
+    ],
+    "Transport": [
+        "paliwo",
+        "bilet",
+        "uber",
+        "taxi"
+    ],
+    "Elektronika": [
+        "komputer",
+        "laptop",
+        "telefon"
+    ],
+    "Zakupy": [
+        "zakupy",
+        "odzież",
+        "buty",
+        "piłka",
+        "kwiaty",
+        "podkoszulka",
+        "balon"
+    ],
+    "Inne": []
+}
